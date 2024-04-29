@@ -90,7 +90,7 @@ public class StringCompiler {
 
         @Override
         public OutputStream openOutputStream() throws IOException {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            outputStream = new ByteArrayOutputStream();
             return outputStream;
         }
 

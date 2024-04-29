@@ -3,5 +3,4 @@
 2、为什么要创建自定义的JavaFileObject？
 3、为什么protected TmpJavaFileManager(JavaFileManager fileManager) {
 super(fileManager);
-}
-为什么是受保护的构造函数？
+} 为什么是受保护的构造函数？
