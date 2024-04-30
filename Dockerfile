@@ -1,5 +1,5 @@
 # 设置JAVA版本
-FROM java:11
+FROM java:8
 # 指定存储卷, 任何向/tmp写入的信息都不会记录到容器存储层
 VOLUME /tmp
 # 拷贝运行JAR包
@@ -9,9 +9,9 @@ COPY ${JAR_FILE} app.jar
 ENV JAVA_OPTS="\
 -server \
 -Xms16m \
--Xmx128m \
+-Xmx64m \
 -XX:MetaspaceSize=16m \
--XX:MaxMetaspaceSize=128m"
+-XX:MaxMetaspaceSize=64m"
 #空参数，方便创建容器时传参
 ENV PARAMS=""
 # 入口点， 执行JAVA运行命令
