@@ -10,7 +10,7 @@ public class mainExecutor {
     public static String execute(byte[] classByte, String systemIn) {
         ClassModifier classModifier = new ClassModifier(classByte);
 
-        byte[] modifyBytes = classModifier.modifyConstantUTF8Value("java/lang/System", "com/example/online_java_ide/utils/CustomSystem");
+        byte[] modifyBytes = classModifier.modifyConstantUTF8Value("java/lang/System", "classes/com/example/online_java_ide/utils/CustomSystem");
         modifyBytes = classModifier.modifyConstantUTF8Value("java/util/Scanner", "com/example/online_java_ide/utils/CustomScanner");
 
         ((CustomInputStream) CustomSystem.in).set(systemIn);
