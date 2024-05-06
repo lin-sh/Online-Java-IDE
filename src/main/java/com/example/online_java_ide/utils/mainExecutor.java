@@ -1,6 +1,7 @@
 package com.example.online_java_ide.utils;
 
 import com.example.online_java_ide.config.CustomClassLoader;
+import com.example.online_java_ide.utils.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,6 +11,7 @@ public class mainExecutor {
         ClassModifier classModifier = new ClassModifier(classByte);
 
         byte[] modifyBytes = classModifier.modifyConstantUTF8Value("java/lang/System", "com/example/online_java_ide/utils/CustomSystem");
+//        System.out.println(System.getProperty("java.lang.System"));
         modifyBytes = classModifier.modifyConstantUTF8Value("java/util/Scanner", "com/example/online_java_ide/utils/CustomScanner");
 
         ((CustomInputStream) CustomSystem.in).set(systemIn);
