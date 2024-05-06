@@ -72,8 +72,9 @@
                 <version>${spring-boot.version}</version>
                 <configuration>
                     <mainClass>com.example.online_java_ide.OnlineJavaIdeApplication</mainClass>
-                    <skip>true</skip>
+<!--                    <skip>true</skip>-->
 <!--                    <layout>JAR</layout>-->
+                    <includeSystemScope>true</includeSystemScope>
                 </configuration>
                 <executions>
                     <execution>
