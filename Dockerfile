@@ -8,10 +8,10 @@ COPY ${JAR_FILE} app.jar
 # 设置JVM运行参数， 这里限定下内存大小，减少开销
 ENV JAVA_OPTS="\
 -server \
--Xms16m \
--Xmx64m \
--XX:MetaspaceSize=16m \
--XX:MaxMetaspaceSize=64m"
+-Xms256m \
+-Xmx512m \
+-XX:MetaspaceSize=256m \
+-XX:MaxMetaspaceSize=512m"
 #空参数，方便创建容器时传参
 ENV PARAMS=""
 # 入口点， 执行JAVA运行命令
