@@ -34,7 +34,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>5.3.23</version> <!-- 根据你的需求选择版本 -->
         </dependency>
 
         <dependency>
@@ -73,7 +72,8 @@
                 <version>${spring-boot.version}</version>
                 <configuration>
                     <mainClass>com.example.online_java_ide.OnlineJavaIdeApplication</mainClass>
-                    <skip>true</skip>
+<!--                    <skip>true</skip>-->
+                    <layout>JAR</layout>
                 </configuration>
                 <executions>
                     <execution>
