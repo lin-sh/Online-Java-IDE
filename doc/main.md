@@ -13,9 +13,9 @@
 
 ## 项目实现
 
-当我们拿到一个新的Web项目时，我们面临的第一个挑战通常是理解其代码结构。传统的方法可能是按顺序查看每个文件夹和文件，但这种方法可能不是最高效的。相反，一个更有成效的策略是按照项目的数据流传递来审查代码。
+当拿到一个新的Web项目时，面临的第一个挑战通常是理解其代码结构。传统的方法可能是按顺序查看每个文件夹和文件，但这种方法可能不是最高效的。相反，一个更有成效的策略是按照项目的数据流传递来审查代码。
 
-在Web项目中，数据流从客户端开始，通过网络发送到服务器的后端。因此，一个合理的起点是后端的控制层，这是数据进入后端的入口点。控制层负责处理来自前端的请求，并调用适当的服务和数据模型来响应这些请求。通过优秀查看控制层，我们可以快速地了解后端提供了哪些接口给前端使用，以及这些接口是如何处理数据的。
+在Web项目中，数据流从客户端开始，通过网络发送到服务器的后端。因此，一个合理的起点是后端的控制层，这是数据进入后端的入口点。控制层负责处理来自前端的请求，并调用适当的服务和数据模型来响应这些请求。通过优秀查看控制层，可以快速地了解后端提供了哪些接口给前端使用，以及这些接口是如何处理数据的。
 
 > com/example/online_java_ide/controller/RunCodeController.java
 
@@ -25,7 +25,7 @@
 String runResult = executeStringService.executeString(source, systemIn);
 ```
 
-通过调用 `executeStringService` 的 `executeString` 方法来获取代码执行后的结果。因此，我们需要查找 `executeString` 方法的具体实现。
+通过调用 `executeStringService` 的 `executeString` 方法来获取代码执行后的结果。因此，需要查找 `executeString` 方法的具体实现。
 
 > com/example/online_java_ide/service/impl/ExecuteStringServiceImpl.java
 
@@ -100,7 +100,7 @@ JavaCompiler.CompilationTask getTask(Writer out,
 
 ###### out
 
-上面提到的这个参数用于输出编译过程中的警告和错误。在之前我们已经使用了一个 `DiagnosticListener` 对象来监听编译过程中产生的警告和错误，因此在这里可以将该参数设置为 `null`。
+上面提到的这个参数用于输出编译过程中的警告和错误。在之前已经使用了一个 `DiagnosticListener` 对象来监听编译过程中产生的警告和错误，因此在这里可以将该参数设置为 `null`。
 
 ###### fileManager
 
@@ -183,11 +183,11 @@ Java 类库并没有提供能直接使用的 `JavaFileObject`，所以要通过�
 
 2. **编译源码：** 编译器对获取的源码进行编译，生成字节码。这时，编译器需要将生成的字节码存储到一个合适的 `JavaFileObject` 中。
 
-3. **自定义存储位置：** 由于编译器无法直接知道应该将字节码存储到哪个 `JavaFileObject` 中，这时就需要使用 `JavaFileManager` 接口中的 `getJavaFileForOutput()` 方法。在这个方法中，我们会创建一个自定义的 `JavaFileObject` 子类的实例，用于存储字节码。
+3. **自定义存储位置：** 由于编译器无法直接知道应该将字节码存储到哪个 `JavaFileObject` 中，这时就需要使用 `JavaFileManager` 接口中的 `getJavaFileForOutput()` 方法。在这个方法中，会创建一个自定义的 `JavaFileObject` 子类的实例，用于存储字节码。
 
-4. **存储字节码：** 在自定义的 `JavaFileObject` 子类中，我们会使用 `ByteArrayOutputStream` 等方式创建一个容器，用于存储字节码。编译器会调用 `openOutputStream()` 方法来获取输出流对象，并将编译生成的字节码写入到这个输出流中。
+4. **存储字节码：** 在自定义的 `JavaFileObject` 子类中，会使用 `ByteArrayOutputStream` 等方式创建一个容器，用于存储字节码。编译器会调用 `openOutputStream()` 方法来获取输出流对象，并将编译生成的字节码写入到这个输出流中。
 
-5. **获取字节码：** 最后，我们可以通过自定义的方法（比如 `getCompiledBytes()`）来获取字节码的字节数组形式，以便进一步处理或存储。
+5. **获取字节码：** 最后，可以通过自定义的方法（比如 `getCompiledBytes()`）来获取字节码的字节数组形式，以便进一步处理或存储。
 
 所以，需要重写 `getCharContent()` 和`openOutputStream()` 方法，以及给出一个新方法`getCompiledBytes()`：
 
@@ -207,7 +207,7 @@ public static class TmpJavaFileObject extends SimpleJavaFileObject {
 
     /**
 	 * 构造用来存储字节码的JavaFileObject
-	 * 需要传入kind，即我们想要构建一个存储什么类型文件的JavaFileObject
+	 * 需要传入kind，即想要构建一个存储什么类型文件的JavaFileObject
 	 */
     public TmpJavaFileObject(String name, Kind kind) {
         super(URI.create("String:///" + name + Kind.SOURCE.extension), kind);
@@ -298,4 +298,139 @@ public class StringSourceCompiler {
 ```
 
 #### 创建Callable对象
+
+在 Java 中，Callable 是一个接口，它允许在多线程环境中执行任务，并返回一个结果。与之相对的是 Runnable 接口，但 Runnable 的 run 方法不会返回结果。由于需要知道程序执行完的结果，因此采用 Callable 接口。在 Callable 接口的实现中，调用 `mainExecutor.execute(classBytes, systemIn)` 方法，以执行任务并返回结果。
+
+接下来，看一下`mainExecutor.execute`方法的执行流程
+
+1. 字节码修改
+2. 字节码加载
+3. 方法执行
+4. 结果获取
+
+##### 字节码修改
+
+在日常开发中，通常会使用 `System.out` 来展示程序的运行结果，异常信息也会直接打印到控制台上供查看。然而，要让客户端能够获得他们想要运行的代码的运行结果，需要以与 IDE 中相同的方式来收集程序在标准输出（System.out）和标准错误输出（System.err）中的信息，并返回给客户端。
+
+然而，标准输出设备是整个虚拟机进程全局共享的资源。虽然可以通过 `System.setOut()` 和 `System.setErr()` 方法将输出流重定向到自己定义的 `PrintStream` 对象上，但这在多线程环境下可能会导致混乱，因为可能会将其他线程的结果也收集了。此外，允许客户端程序随意调用 `System` 类的方法还存在安全隐患，例如客户端程序中调用了 `System.exit(0)` 等方法，这对服务器来说是非常危险的。
+
+因此，考虑将程序中的 `System` 类替换成自己编写的 `CustomSystem` 类。这样一来，既可以收集客户端程序的运行结果，又可以将 `System` 类中的潜在危险调用改写成抛出异常，以禁止客户端程序进行危险操作。
+
+###### System类替换
+
+为了将客户端程序中对 `System` 的调用替换为对 `CustomSystem` 的调用，采用了一种高级的方法，即直接在字节码中进行修改。这需要一个字节码修改器，它完成以下流程：
+
+1. 遍历字节码常量池，找到所有对 "java/lang/System" 的符号引用；
+2. 将 "java/lang/System" 替换为 ".../CustomSystem"。
+
+为了完成上述步骤，首先需要了解类文件的结构，这样才能确定类对 `System` 的符号引用的位置，并知道如何进行替换。其次，需要一个字节数组修改工具 `ByteUtils`，来帮助修改存储字节码的字节数组。这样，就可以在字节码级别上将 `System` 替换为 `CustomSystem`，而无需直接修改客户端发送的源代码字符串，使操作更加优雅和高效。
+
+###### 类文件结构
+
+Class 文件是一组以 8 位字节为基础单位的二进制流，其中各个数据项目严格按照顺序紧凑地排列在文件中，中间没有任何分隔符。Java 虚拟机规范定义了一种类似于 C 语言结构体的伪结构来存储数据，其中只包含两种数据类型：无符号数和表。
+
+- **无符号数**：无符号数是基本数据类型，用于描述数字、索引引用、数量值或者 UTF-8 编码的字符串值。在 Class 文件中，无符号数可分为 `u1`、`u2`、`u4`、`u8`，分别代表 1 字节、2 字节、4 字节和 8 字节的无符号数。
+- **表**：表是由多个无符号数或其他表构成的复合数据类型，通常以 `_info` 结尾。表用于存储常量池、字段信息、方法信息、属性信息等。
+
+Class 文件的前 8 个字节包含了魔数和版本号。其中前 4 个字节是魔数，固定为 `0xCAFEBABE`，用于确定文件是否为一个有效的 Class 文件。接下来的 4 个字节包含了当前 Class 文件的版本号，其中第 5、6 个字节是次版本号，第 7、8 个字节是主版本号。这些版本号用于指示该文件的 Java 版本。
+
+常量池是 Class 文件中与其他项目关联最多、占用空间最大的数据项目。它从文件的第 9 个字节开始，并且是 Class 文件中第一个出现的表类型数据项目。常量池的开始的两个字节，即第 9 和第 10 个字节，存储一个 `u2` 类型的数据，表示常量池中常量的数量 `cpc`（constant_pool_count）。
+
+常量池中记录了代码中出现过的所有 token（如类名、成员变量名等）以及符号引用（如方法引用、成员变量引用等）。主要包括两大类常量：
+
+1. **字面量**：接近于 Java 语言层面的常量概念，包括文本字符串和声明为 `final` 的常量值。
+2. **符号引用**：以一组符号来描述所引用的目标，包括类和接口的全限定名，字段的名称和描述符，方法的名称和描述符等。
+
+每一项常量都通过一个表来存储。目前共有 14 种常量类型，每种类型都有自己的结构。在这里，简要介绍两种常见的常量类型：`CONSTANT_Class_info` 和 `CONSTANT_Utf8_info`。
+
+`CONSTANT_Class_info` 的存储结构如下：
+
+```
+... [ tag=7 ] [ name_index ] ...
+... [  1位  ] [     2位    ] ...
+```
+
+其中，`tag` 是标志位，用于区分常量类型。当 `tag` 等于 7 时，表示接下来的这个表是一个 `CONSTANT_Class_info`。`name_index` 是一个索引值，指向常量池中的一个 `CONSTANT_Utf8_info` 类型的常量所在的索引值。`CONSTANT_Utf8_info` 类型常量一般用于描述类的全限定名、方法名和字段名。它的存储结构如下：
+
+```
+... [ tag=1 ] [ 当前常量的长度 len ] [ 常量的符号引用的字符串值 ] ...
+... [  1位  ] [        2位        ] [         len位         ] ...
+```
+
+在本项目中，需要修改的是值为 `java/lang/System` 的 `CONSTANT_Utf8_info` 常量。因为在类加载过程中，虚拟机会将常量池中的“符号引用”替换为“直接引用”，而 `java/lang/System` 是用来寻找其方法的直接引用的关键所在。只需将 `java/lang/System` 修改为我们自定义类的全限定名，就可以在运行时将通过 `System.xxx` 调用的方法偷偷地替换为我们的方法。
+
+由于需要修改的内容位于常量池中，因此介绍到了常量池为止。修改操作会调用`ByteUtils` ，具有以下几个功能：
+
+1. 将字节数组转换为整数（byte to int）。
+2. 将整数转换为字节数组（int to byte）。
+3. 将字节数组转换为字符串（byte to String）。
+4. 将字符串转换为字节数组（String to byte）。
+5. 替换字节数组中的部分字节。
+
+##### 实现字节码修改器
+
+实现的基本流程：
+
+1. 取出常量池中的常量个数 `cpc`；
+2. 遍历常量池中的 `cpc` 个常量，检查 `tag = 1` 的 `CONSTANT_Utf8_info` 常量；
+3. 找到存储的常量值为 `java/lang/System` 的常量，并将其替换为 `".../CustomSystem"`；
+4. 因为只可能有一个值为 `java/lang/System` 的 `CONSTANT_Utf8_info` 常量，所以找到后可以立即返回修改后的字节码。
+
+##### System 类
+
+`System` 类是 Java 程序中的一个标准系统类，与 `Class` 类一样直接注册进虚拟机，也就是说，它是直接与虚拟机打交道的类。`System` 类实现了多个功能，包括：
+
+- 控制台与程序之间的输入输出流的控制。
+- 系统的初始化。
+- 获取系统环境变量。
+- 一些简单的对虚拟机的操作等。
+
+`System` 类位于 `java.lang` 包中，作为 Java 语言的核心特性之一，它是一个不可被实例化的类，只有一个私有的空参构造函数来禁止其他类创建 `System` 实例：
+
+```java
+private System() {
+}
+```
+
+`System` 类中只有三个公有的属性，即标准输入流、标准输出流和标准错误流：
+
+```java
+public final static InputStream in = null;
+public final static PrintStream out = null;
+public final static PrintStream err = null;
+```
+
+这三个字段都是 `static final` 的，并且 `out` 和 `err` 都是 `PrintStream` 类型。`PrintStream` 是一个装饰者模式的实现，它可以为其他输出流添加功能，使其能够方便地打印各种数据值的表示形式。`PrintStream` 类的特点是不会抛出 `IOException`，而是将错误标记为 `true`，使得用户可以通过 `checkError()` 方法来查看是否产生了 `IOException`。
+
+`PrintStream` 类中有许多 `print` 方法，这些方法会将要打印的内容写入到其所装饰的输出流中，通常通过调用 `PrintStream` 中的各种 `write` 方法来实现。由于 `PrintStream` 只装饰了一个输出流，但可能有多个线程要向这个输出流写入内容，因此在 `PrintStream` 中所有需要写入内容的地方都进行了同步处理。
+
+```java
+private void write(String s) {
+    try {
+        synchronized (this) {
+            ensureOpen();
+            textOut.write(s);
+            textOut.flushBuffer();
+            charOut.flushBuffer();
+            if (autoFlush && (s.indexOf('\n') >= 0))
+                out.flush();
+        }
+    }
+    catch (InterruptedIOException x) {
+        Thread.currentThread().interrupt();
+    }
+    catch (IOException x) {
+        trouble = true;
+    }
+}
+```
+
+对 `PrintStream` 进行详细介绍是为了说明在本项目中，`System` 类中原有的 `PrintStream` 并不符合需求。原有的 `PrintStream` 主要用于将多个输出格式化后并写入到一个流中，但在本项目中，需要能够同时运行多个客户端程序，并将它们的标准输出打印到不同的流中。
+
+因此，除了将 `System` 类重写为 `CustomSystem` 外，我们的 `CustomSystem` 类中的 `out` 和 `err` 属性需要一种特殊的装饰。首先，它本质上仍然需要是一个 `PrintStream`，这样才能使得我们的 `CustomSystem` 能够有效地伪装成 `System`。其次，它内部装饰的不是单一的流，而是多个流。换句话说，每一个调用 `CustomSystem` 中方法的线程都会创建一个新的流来存储输出结果。
+
+因此，需要进行以下两个替换操作：
+
+1. 将 `System` 替换为 `CustomSystem`。
+2. 将 `CustomSystem` 中的 `PrintStream out` 和 `PrintStream err` 的本质替换为自己编写的 `CustomPrintStream` 实例。
 
