@@ -68,18 +68,18 @@ JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
 
 ```java
 Boolean result = compiler.getTask(null, javaFileManager, diagnostics,
-                null, null, Arrays.asList(tmpJavaFileObject)).call();
+        null, null, Arrays.asList(tmpJavaFileObject)).call();
 ```
 
 关键在于`compiler.getTask`，看一下他需要哪些参数
 
 ```java
 JavaCompiler.CompilationTask getTask(Writer out,
-                                     JavaFileManager fileManager,
-                                     DiagnosticListener<? super JavaFileObject> diagnosticListener,
-                                     Iterable<String> options,
-                                     Iterable<String> classes,
-                                     Iterable<? extends JavaFileObject> compilationUnits)
+        JavaFileManager fileManager,
+        DiagnosticListener<? super JavaFileObject> diagnosticListener,
+        Iterable<String> options,
+        Iterable<String> classes,
+        Iterable<? extends JavaFileObject> compilationUnits)
 ```
 
 需要6个参数：
@@ -110,30 +110,30 @@ JavaCompiler.CompilationTask getTask(Writer out,
 
 ```java
 public static class TmpJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> {
-    protected TmpJavaFileManager(JavaFileManager fileManager) {
-        super(fileManager);
-    }
+   protected TmpJavaFileManager(JavaFileManager fileManager) {
+      super(fileManager);
+   }
 
-    @Override
-    public JavaFileObject getJavaFileForInput(JavaFileManager.Location location, 
-                                              String className, 
-                                              JavaFileObject.Kind kind) throws IOException {
-        JavaFileObject javaFileObject = fileObjectMap.get(className);
-        if (javaFileObject == null) {
-            return super.getJavaFileForInput(location, className, kind);
-        }
-        return javaFileObject;
-    }
+   @Override
+   public JavaFileObject getJavaFileForInput(JavaFileManager.Location location,
+                                             String className,
+                                             JavaFileObject.Kind kind) throws IOException {
+      JavaFileObject javaFileObject = fileObjectMap.get(className);
+      if (javaFileObject == null) {
+         return super.getJavaFileForInput(location, className, kind);
+      }
+      return javaFileObject;
+   }
 
-    @Override
-    public JavaFileObject getJavaFileForOutput(JavaFileManager.Location location, 
-                                               String className, 
-                                               JavaFileObject.Kind kind, 
-                                               FileObject sibling) throws IOException {
-        JavaFileObject javaFileObject = new TmpJavaFileObject(className, kind);
-        fileObjectMap.put(className, javaFileObject);
-        return javaFileObject;
-    }
+   @Override
+   public JavaFileObject getJavaFileForOutput(JavaFileManager.Location location,
+                                              String className,
+                                              JavaFileObject.Kind kind,
+                                              FileObject sibling) throws IOException {
+      JavaFileObject javaFileObject = new TmpJavaFileObject(className, kind);
+      fileObjectMap.put(className, javaFileObject);
+      return javaFileObject;
+   }
 }
 ```
 
@@ -193,44 +193,44 @@ Java 类库并没有提供能直接使用的 `JavaFileObject`，所以要通过�
 
 ```java
 public static class TmpJavaFileObject extends SimpleJavaFileObject {
-    private String source;
-    private ByteArrayOutputStream outputStream;
+   private String source;
+   private ByteArrayOutputStream outputStream;
 
-    /**
-     * 构造用来存储源代码的JavaFileObject
-     * 需要传入源码source，然后调用父类的构造方法创建kind = Kind.SOURCE的JavaFileObject对象
-     */
-    public TmpJavaFileObject(String name, String source) {
-        super(URI.create("String:///" + name + Kind.SOURCE.extension), Kind.SOURCE);
-        this.source = source;
-    }
+   /**
+    * 构造用来存储源代码的JavaFileObject
+    * 需要传入源码source，然后调用父类的构造方法创建kind = Kind.SOURCE的JavaFileObject对象
+    */
+   public TmpJavaFileObject(String name, String source) {
+      super(URI.create("String:///" + name + Kind.SOURCE.extension), Kind.SOURCE);
+      this.source = source;
+   }
 
-    /**
-	 * 构造用来存储字节码的JavaFileObject
-	 * 需要传入kind，即想要构建一个存储什么类型文件的JavaFileObject
-	 */
-    public TmpJavaFileObject(String name, Kind kind) {
-        super(URI.create("String:///" + name + Kind.SOURCE.extension), kind);
-        this.source = null;
-    }
+   /**
+    * 构造用来存储字节码的JavaFileObject
+    * 需要传入kind，即想要构建一个存储什么类型文件的JavaFileObject
+    */
+   public TmpJavaFileObject(String name, Kind kind) {
+      super(URI.create("String:///" + name + Kind.SOURCE.extension), kind);
+      this.source = null;
+   }
 
-    @Override
-    public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
-        if (source == null) {
-            throw new IllegalArgumentException("source == null");
-        }
-        return source;
-    }
+   @Override
+   public CharSequence getCharContent(boolean ignoreEncodingErrors) throws IOException {
+      if (source == null) {
+         throw new IllegalArgumentException("source == null");
+      }
+      return source;
+   }
 
-    @Override
-    public OutputStream openOutputStream() throws IOException {
-        outputStream = new ByteArrayOutputStream();
-        return outputStream;
-    }
+   @Override
+   public OutputStream openOutputStream() throws IOException {
+      outputStream = new ByteArrayOutputStream();
+      return outputStream;
+   }
 
-    public byte[] getCompiledBytes() {
-        return outputStream.toByteArray();
-    }
+   public byte[] getCompiledBytes() {
+      return outputStream.toByteArray();
+   }
 }
 ```
 
@@ -250,50 +250,50 @@ public static class TmpJavaFileObject extends SimpleJavaFileObject {
 
 ```java
 public class StringSourceCompiler {
-    private static Map<String, JavaFileObject> fileObjectMap = new ConcurrentHashMap<>();
+   private static Map<String, JavaFileObject> fileObjectMap = new ConcurrentHashMap<>();
 
-    public static byte[] compile(String source) {
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
-        JavaFileManager javaFileManager =
-                new TmpJavaFileManager(compiler.getStandardFileManager(collector, null, null));
+   public static byte[] compile(String source) {
+      JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+      DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<>();
+      JavaFileManager javaFileManager =
+              new TmpJavaFileManager(compiler.getStandardFileManager(collector, null, null));
 
-        // 从源码字符串中匹配类名
-        Pattern CLASS_PATTERN = Pattern.compile("class\\s+([$_a-zA-Z][$_a-zA-Z0-9]*)\\s*");
-        Matcher matcher = CLASS_PATTERN.matcher(source);
-        String className;
-        if (matcher.find()) {
-            className = matcher.group(1);
-        } else {
-            throw new IllegalArgumentException("No valid class");
-        }
+      // 从源码字符串中匹配类名
+      Pattern CLASS_PATTERN = Pattern.compile("class\\s+([$_a-zA-Z][$_a-zA-Z0-9]*)\\s*");
+      Matcher matcher = CLASS_PATTERN.matcher(source);
+      String className;
+      if (matcher.find()) {
+         className = matcher.group(1);
+      } else {
+         throw new IllegalArgumentException("No valid class");
+      }
 
-        // 把源码字符串构造成JavaFileObject，供编译使用
-        JavaFileObject sourceJavaFileObject = new TmpJavaFileObject(className, source);
+      // 把源码字符串构造成JavaFileObject，供编译使用
+      JavaFileObject sourceJavaFileObject = new TmpJavaFileObject(className, source);
 
-        Boolean result = compiler.getTask(null, javaFileManager, collector,
-                null, null, Arrays.asList(sourceJavaFileObject)).call();
+      Boolean result = compiler.getTask(null, javaFileManager, collector,
+              null, null, Arrays.asList(sourceJavaFileObject)).call();
 
-        JavaFileObject bytesJavaFileObject = fileObjectMap.get(className);
-        if (result && bytesJavaFileObject != null) {
-            return ((TmpJavaFileObject) bytesJavaFileObject).getCompiledBytes();
-        }
-        return null;
-    }
+      JavaFileObject bytesJavaFileObject = fileObjectMap.get(className);
+      if (result && bytesJavaFileObject != null) {
+         return ((TmpJavaFileObject) bytesJavaFileObject).getCompiledBytes();
+      }
+      return null;
+   }
 
-    /**
-     * 管理JavaFileObject对象的工具
-     */
-    public static class TmpJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> {
-		// ...
-    }
+   /**
+    * 管理JavaFileObject对象的工具
+    */
+   public static class TmpJavaFileManager extends ForwardingJavaFileManager<JavaFileManager> {
+      // ...
+   }
 
-    /**
-     * 用来封装表示源码与字节码的对象
-     */
-    public static class TmpJavaFileObject extends SimpleJavaFileObject {
-		// ...
-    }
+   /**
+    * 用来封装表示源码与字节码的对象
+    */
+   public static class TmpJavaFileObject extends SimpleJavaFileObject {
+      // ...
+   }
 }
 ```
 
@@ -376,7 +376,7 @@ Class 文件的前 8 个字节包含了魔数和版本号。其中前 4 个字�
 3. 找到存储的常量值为 `java/lang/System` 的常量，并将其替换为 `".../CustomSystem"`；
 4. 因为只可能有一个值为 `java/lang/System` 的 `CONSTANT_Utf8_info` 常量，所以找到后可以立即返回修改后的字节码。
 
-##### System 类
+###### System 类
 
 `System` 类是 Java 程序中的一个标准系统类，与 `Class` 类一样直接注册进虚拟机，也就是说，它是直接与虚拟机打交道的类。`System` 类实现了多个功能，包括：
 
@@ -434,3 +434,215 @@ private void write(String s) {
 1. 将 `System` 替换为 `CustomSystem`。
 2. 将 `CustomSystem` 中的 `PrintStream out` 和 `PrintStream err` 的本质替换为自己编写的 `CustomPrintStream` 实例。
 
+###### CustomSystem
+
+对于 `CustomSystem` 类，基本上可以仿照 `System` 类的写法进行修改，但需要做一些调整。首先，需要修改 `out` 和 `err` 两个字段的实际类型，将它们修改为我们自己编写的 `CustomPrintStream` 对象：
+
+```java
+public final static PrintStream out = new HackPrintStream();
+public final static PrintStream err = out;
+```
+
+然后，需要添加两个方法，用于获取当前线程的输出流中的内容和关闭当前线程的输出流：
+
+```java
+public static String getBufferString() {
+    return out.toString();
+}
+
+public static void closeBuffer() {
+    out.close();
+}
+```
+
+接下来，对于一些比较危险的方法，要禁止客户端调用，一旦客户端调用了这些方法，直接抛出异常。例如：
+
+```java
+public static void exit(int status) {
+    throw new SecurityException("Use hazardous method: System.exit().");
+}
+```
+
+最后，对于一些不涉及系统的工具方法，可以按原样保留，直接在方法内部调用 `System` 类的方法即可。例如：
+
+```java
+public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length) {
+    System.arraycopy(src, srcPos, dest, destPos, length);
+}
+```
+
+这样，`CustomSystem` 类就基本完成了。详细的实现可以查看 `CustomSystem.java` 文件。
+
+###### CustomPrintStream
+
+在实现 `CustomPrintStream` 类时，首先需要让它继承 `PrintStream` 类并重写 `PrintStream` 的所有公有方法。这是因为在 `CustomSystem` 类中，我们要通过一个 `PrintStream` 类型的引用来引用 `CustomPrintStream` 的实例，所以 `CustomPrintStream` 的实例需要能够伪装成一个 `PrintStream`。
+
+接下来，重点在于 `CustomPrintStream` 的实现。我们需要让 `CustomPrintStream` 能够支持多个线程调用，并且能够将不同线程通过 `PrintStream` 打印到流中的内容输出到不同的流中，以避免多个线程的标准输出操作互相影响，从而解决并发问题。为了实现这一点，我们需要为每个线程创建一个 `OutputStream` 来保存运行结果，并将这个 `OutputStream` 封闭到线程中（这里我们采用了 `ByteArrayOutputStream` 类）。由于需要实现线程封闭，最适合的工具就是 `ThreadLocal`。因此，在 `CustomPrintStream` 类中，我们添加了以下字段来保存每个线程的标准输出流以及每个线程的标准输出写入过程是否抛出 `IOException`：
+
+```java
+private ThreadLocal<ByteArrayOutputStream> out;
+private ThreadLocal<Boolean> trouble;
+```
+
+这样就能确保每个线程都有自己独立的输出流，并且能够在多线程环境下正确地处理标准输出的操作，避免出现并发问题。
+
+在对 `CustomPrintStream` 进行修改后，需要重写其父类 `PrintStream` 中所有对流进行操作的方法。下面举几个例子，说明如何对父类的方法进行重写：
+
+1. `ensureOpen` 方法：
+   - 在 `PrintStream` 中的实现中，该方法用于确保流处于打开状态，如果流已关闭则抛出异常。
+   - 重写时，需要注意，不是判断 `out` 是否为空，而是判断 `out.get()` 是否为空，因为 `out` 是 `ThreadLocal` 类型，需要通过 `get()` 方法获取实际的输出流。
+
+2. `close` 方法：
+   - 在 `PrintStream` 中的实现中，该方法用于关闭流，但需要考虑递归关闭的问题。
+   - 重写时，只需关闭当前线程的输出流，并将该线程的输出流从 `ThreadLocal` 中移除即可。
+
+3. `write` 方法：
+   - 在 `PrintStream` 中的实现中，该方法用于将字节数组写入流中，需要确保流处于打开状态。
+   - 重写时，需要确保当前线程的输出流处于打开状态，并且将字节数组写入到当前线程的输出流中。
+
+按照以上方式对 `PrintStream` 中需要重写的方法进行重写，详细的实现可见 `CustomPrintStream.java` 文件。这样就能保证 `CustomPrintStream` 在多线程环境下正确地处理标准输出的操作，避免出现并发问题。
+
+##### 字节码加载
+
+首先要注意的是，绝对不能使用系统提供的应用程序类加载器来加载这个类，因为这个类加载器是唯一的。如果使用这个类加载器加载了我们的字节码，当客户端修改了源代码并重新提交运行时，应用程序类加载器会认为这个类已经加载过了，不会再次加载它。这意味着，除非重新启动服务器，否则我们将永远无法执行客户端提交的新代码。
+
+为了能够让客户端提交的代码不修改类名就能随意修改，需要支持热加载。我们知道，两个类相等需要满足以下 3 个条件：
+
+1. 同一个 .class 文件；
+2. 被同一个虚拟机加载；
+3. 被同一个类加载器加载。
+
+前两个条件都不容易改变，因此只能着手第三个条件，即每次都新建一个类加载器来加载客户端提交的字节码。这就需要实现一个新的类加载器：CustomClassLoader。
+
+然而，需要注意的是，只有来自客户端传来的类需要被多次加载，而这个类所调用的其他类库方法等我们仍然希望按照原有的双亲委派机制进行加载。换句话说，只有我们自己调用 CustomClassLoader 来加载类时，它才会将字节数组转换成 Class 对象。而当虚拟机调用它时，它仍会按照以前的规则使用 loadClass 方法来加载类。
+
+为了将存储字节码的字节数组转换成 Class 对象，需要通过定义一个 loadByte 方法来开放 defineClass 方法。这样，当我们自己需要使用 CustomClassLoader 来加载类时，就可以显式调用 loadByte 方法，而虚拟机在需要 CustomClassLoader 时则会调用 loadClass 方法。
+
+`CustomClassLoader`具体实现如下：
+
+```java
+public class CustomClassLoader extends ClassLoader{
+    public Class loadByte(byte[] classBytes) {
+        return defineClass(null, classBytes, 0, classBytes.length);
+    }
+}
+```
+
+> 在Java中，`defineClass` 是ClassLoader类的一个受保护方法，用于将字节数组转换为一个Class对象。其方法签名为：
+>
+> ```java
+> protected final Class<?> defineClass(String name, byte[] b, int off, int len)
+> ```
+>
+> 参数含义如下：
+>
+> - `name`：要定义的类的名称。
+> - `b`：要定义的类的字节码数组。
+> - `off`：数组中的起始偏移量。
+> - `len`：要使用的字节数量。
+>
+> `defineClass(null, classBytes, 0, classBytes.length)` 将字节数组 `classBytes` 转换为一个类对象，没有指定类名。实际上将会使用字节码中的类名。ClassLoader会从字节码中提取类名，并使用该类名定义新的类。因此第一个参数为 `null`。`classBytes` 是包含类的字节码的字节数组，其偏移量为 0，长度为 `classBytes` 的长度。这样就创建了一个新的 Class 对象，表示与字节数组中的字节码对应的类。
+
+使用我们新编写的类加载器，我们就能够通过以下两行代码，无数次地加载客户端要运行的类！
+
+```java
+CustomClassLoader classLoader = new CustomClassLoader();
+Class aClass = classLoader.loadByte(modifyBytes);
+```
+
+##### 方法执行
+
+```java
+Method method = aClass.getMethod("main", new Class[]{String[].class});
+method.invoke(null, new String[]{null});
+```
+
+在这段代码中，首先我们获取了加载进虚拟机的类（`clazz`）中名为`main`的方法。这是因为在Java程序中，如果想要直接运行一个类，需要该类中含有一个入口方法，即`public static void main(String[] args)`方法。我们通过反射机制获取这个方法。
+
+接着，我们调用了`Method`类中的`invoke`方法来执行`main`方法。`invoke`方法需要两个参数：第一个参数是要调用方法的对象或者类，如果是静态方法，这个参数可以为null；第二个参数是方法的参数，以Object数组的形式传递。
+
+在这里，由于`main`方法是一个静态方法，所以我们将第一个参数设为null。而`main`方法本身的参数是一个字符串数组（`String[]`），所以我们创建一个包含一个null元素的字符串数组作为参数传递给`main`方法。
+
+这样，通过反射机制，我们就可以运行加载进虚拟机的类的`main`方法了。
+
+##### 结果获取
+
+```java
+try {
+    Method method = aClass.getMethod("main", new Class[]{String[].class});
+    method.invoke(null, new String[]{null});
+} catch (NoSuchMethodException e) {
+    e.printStackTrace();
+} catch (IllegalAccessException e) {
+    e.printStackTrace();
+} catch (InvocationTargetException e) {
+    e.getCause().printStackTrace(CustomSystem.err);
+}
+
+String res = CustomSystem.getBufferString();
+CustomSystem.closeBuffer();
+return res;
+```
+
+这段代码是一个尝试执行加载到虚拟机中的类的`main`方法，并捕获可能抛出的异常。具体来说：
+
+1. 首先，通过反射获取了加载到虚拟机中的类（`aClass`）中的名为`main`的方法。这个方法是程序的入口方法。
+
+2. 然后，使用反射的`invoke`方法调用了获取到的`main`方法。这里的`invoke`方法需要两个参数：第一个参数是要调用方法的对象或者类，如果是静态方法，这个参数可以为null；第二个参数是方法的参数，以Object数组的形式传递。
+
+3. 接着，使用了多个`catch`块来捕获可能抛出的异常：
+   - 如果在获取`main`方法时出现了`NoSuchMethodException`异常，则打印异常堆栈轨迹。
+   - 如果在执行`main`方法时出现了`IllegalAccessException`异常，则打印异常堆栈轨迹。
+   - 如果在执行`main`方法时出现了`InvocationTargetException`异常，则打印其原因的异常堆栈轨迹。`InvocationTargetException`是由于在调用目标方法时发生异常而导致的异常。在这里，我们获取其原因（通过`getCause()`方法），然后将其异常堆栈轨迹输出到自定义的错误输出流（`CustomSystem.err`）中。
+
+4. 在执行完`main`方法后，获取了自定义的缓冲区字符串（通过`CustomSystem.getBufferString()`方法），并关闭了缓冲区（通过`CustomSystem.closeBuffer()`方法），最后将缓冲区字符串返回。
+
+#### Future 对象
+
+我们并不知道客户端发来的程序的实际运行时间，出于安全的角度考虑，我们需要对其运行时间进行限制。通过使用 Callable + Future 的方式来限制程序的执行时间，并且对运行过程中可能出现的错误进行 catch，返回给客户端。
+
+```java
+Future<String> res = null;
+try {
+    res = executorService.submit(runTask);
+} catch (RejectedExecutionException e) {
+    return WAIT_WARNING;
+}
+
+String runResult;
+try {
+    runResult = res.get(RUN_TIME_LIMIT, TimeUnit.SECONDS);
+} catch (InterruptedException e) {
+    runResult = "Program interrupted.";
+} catch (ExecutionException e) {
+    runResult = e.getCause().getMessage();
+} catch (TimeoutException e) {
+    runResult = "Time Limit Exceeded.";
+} finally {
+    res.cancel(true);
+}
+```
+
+这段代码的作用是使用线程池执行一个任务，并获取任务的执行结果。
+
+首先，通过`executorService.submit(runTask)`方法提交一个任务（`runTask`）给线程池执行，并将返回的`Future<String>`对象赋给变量`res`。`submit`方法会立即返回一个`Future`对象，用于跟踪任务的执行状态和结果。
+
+然后，通过`try`块捕获可能抛出的`RejectedExecutionException`异常。如果任务无法被接受执行，即线程池拒绝了任务，说明此时提交的任务较多，那么就返回一个表示等待警告的字符串（`WAIT_WARNING`）。
+
+接着，通过`res.get(RUN_TIME_LIMIT, TimeUnit.SECONDS)`方法获取任务的执行结果。这里使用了`get`方法，它会阻塞当前线程，直到任务执行完成并返回结果，或者超时时间达到。`RUN_TIME_LIMIT`是设定的任务执行时间限制，使用`TimeUnit.SECONDS`指定时间单位。
+
+在`get`方法的异常处理中，有几种情况：
+
+- 如果任务执行过程中被中断，则将`runResult`设为"Program interrupted."；
+- 如果任务执行过程中出现异常，则将`runResult`设为异常的消息（通过`e.getCause().getMessage()`获取异常的原因消息）；
+- 如果任务执行超时，则将`runResult`设为"Time Limit Exceeded."。
+
+最后，在`finally`块中，调用`res.cancel(true)`取消任务的执行。参数`true`表示尝试中断任务的执行，即使它已经开始执行了。
+
+#### 结果返回
+
+```java
+return runResult != null ? runResult : NO_OUTPUT;
+```
+
+这样就确保了无论客户端程序是否有输出，都能够返回相应的结果给客户端。
