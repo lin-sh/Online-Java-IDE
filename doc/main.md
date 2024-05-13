@@ -389,7 +389,7 @@ Class 文件的前 8 个字节包含了魔数和版本号。其中前 4 个字�
 
 ```java
 private System() {
-}
+        }
 ```
 
 `System` 类中只有三个公有的属性，即标准输入流、标准输出流和标准错误流：
@@ -406,23 +406,23 @@ public final static PrintStream err = null;
 
 ```java
 private void write(String s) {
-    try {
-        synchronized (this) {
-            ensureOpen();
-            textOut.write(s);
-            textOut.flushBuffer();
-            charOut.flushBuffer();
-            if (autoFlush && (s.indexOf('\n') >= 0))
-                out.flush();
+        try {
+synchronized (this) {
+        ensureOpen();
+        textOut.write(s);
+        textOut.flushBuffer();
+        charOut.flushBuffer();
+        if (autoFlush && (s.indexOf('\n') >= 0))
+        out.flush();
         }
-    }
-    catch (InterruptedIOException x) {
+        }
+        catch (InterruptedIOException x) {
         Thread.currentThread().interrupt();
-    }
-    catch (IOException x) {
+        }
+        catch (IOException x) {
         trouble = true;
-    }
-}
+        }
+        }
 ```
 
 对 `PrintStream` 进行详细介绍是为了说明在本项目中，`System` 类中原有的 `PrintStream` 并不符合需求。原有的 `PrintStream` 主要用于将多个输出格式化后并写入到一个流中，但在本项目中，需要能够同时运行多个客户端程序，并将它们的标准输出打印到不同的流中。
@@ -447,28 +447,28 @@ public final static PrintStream err = out;
 
 ```java
 public static String getBufferString() {
-    return out.toString();
-}
+        return out.toString();
+        }
 
 public static void closeBuffer() {
-    out.close();
-}
+        out.close();
+        }
 ```
 
 接下来，对于一些比较危险的方法，要禁止客户端调用，一旦客户端调用了这些方法，直接抛出异常。例如：
 
 ```java
 public static void exit(int status) {
-    throw new SecurityException("Use hazardous method: System.exit().");
-}
+        throw new SecurityException("Use hazardous method: System.exit().");
+        }
 ```
 
 最后，对于一些不涉及系统的工具方法，可以按原样保留，直接在方法内部调用 `System` 类的方法即可。例如：
 
 ```java
 public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length) {
-    System.arraycopy(src, srcPos, dest, destPos, length);
-}
+        System.arraycopy(src, srcPos, dest, destPos, length);
+        }
 ```
 
 这样，`CustomSystem` 类就基本完成了。详细的实现可以查看 `CustomSystem.java` 文件。
@@ -522,9 +522,9 @@ private ThreadLocal<Boolean> trouble;
 
 ```java
 public class CustomClassLoader extends ClassLoader{
-    public Class loadByte(byte[] classBytes) {
-        return defineClass(null, classBytes, 0, classBytes.length);
-    }
+   public Class loadByte(byte[] classBytes) {
+      return defineClass(null, classBytes, 0, classBytes.length);
+   }
 }
 ```
 
@@ -547,14 +547,14 @@ public class CustomClassLoader extends ClassLoader{
 
 ```java
 CustomClassLoader classLoader = new CustomClassLoader();
-Class aClass = classLoader.loadByte(modifyBytes);
+        Class aClass = classLoader.loadByte(modifyBytes);
 ```
 
 ##### 方法执行
 
 ```java
 Method method = aClass.getMethod("main", new Class[]{String[].class});
-method.invoke(null, new String[]{null});
+        method.invoke(null, new String[]{null});
 ```
 
 在这段代码中，首先我们获取了加载进虚拟机的类（`clazz`）中名为`main`的方法。这是因为在Java程序中，如果想要直接运行一个类，需要该类中含有一个入口方法，即`public static void main(String[] args)`方法。我们通过反射机制获取这个方法。
@@ -569,19 +569,19 @@ method.invoke(null, new String[]{null});
 
 ```java
 try {
-    Method method = aClass.getMethod("main", new Class[]{String[].class});
-    method.invoke(null, new String[]{null});
-} catch (NoSuchMethodException e) {
-    e.printStackTrace();
-} catch (IllegalAccessException e) {
-    e.printStackTrace();
-} catch (InvocationTargetException e) {
-    e.getCause().printStackTrace(CustomSystem.err);
-}
+        Method method = aClass.getMethod("main", new Class[]{String[].class});
+        method.invoke(null, new String[]{null});
+        } catch (NoSuchMethodException e) {
+        e.printStackTrace();
+        } catch (IllegalAccessException e) {
+        e.printStackTrace();
+        } catch (InvocationTargetException e) {
+        e.getCause().printStackTrace(CustomSystem.err);
+        }
 
-String res = CustomSystem.getBufferString();
-CustomSystem.closeBuffer();
-return res;
+        String res = CustomSystem.getBufferString();
+        CustomSystem.closeBuffer();
+        return res;
 ```
 
 这段代码是一个尝试执行加载到虚拟机中的类的`main`方法，并捕获可能抛出的异常。具体来说：
@@ -603,24 +603,24 @@ return res;
 
 ```java
 Future<String> res = null;
-try {
-    res = executorService.submit(runTask);
-} catch (RejectedExecutionException e) {
-    return WAIT_WARNING;
-}
+        try {
+        res = executorService.submit(runTask);
+        } catch (RejectedExecutionException e) {
+        return WAIT_WARNING;
+        }
 
-String runResult;
-try {
-    runResult = res.get(RUN_TIME_LIMIT, TimeUnit.SECONDS);
-} catch (InterruptedException e) {
-    runResult = "Program interrupted.";
-} catch (ExecutionException e) {
-    runResult = e.getCause().getMessage();
-} catch (TimeoutException e) {
-    runResult = "Time Limit Exceeded.";
-} finally {
-    res.cancel(true);
-}
+        String runResult;
+        try {
+        runResult = res.get(RUN_TIME_LIMIT, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+        runResult = "Program interrupted.";
+        } catch (ExecutionException e) {
+        runResult = e.getCause().getMessage();
+        } catch (TimeoutException e) {
+        runResult = "Time Limit Exceeded.";
+        } finally {
+        res.cancel(true);
+        }
 ```
 
 这段代码的作用是使用线程池执行一个任务，并获取任务的执行结果。
@@ -646,3 +646,180 @@ return runResult != null ? runResult : NO_OUTPUT;
 ```
 
 这样就确保了无论客户端程序是否有输出，都能够返回相应的结果给客户端。
+
+## 项目部署
+
+#### 基本思路
+
+采用CI/CD的思想来实现项目部署
+
+CI/CD 是指持续集成（Continuous Integration）和持续交付/持续部署（Continuous Delivery/Continuous Deployment）的缩写。
+
+1. **持续集成（Continuous Integration，CI）**：指在软件开发过程中，开发人员频繁地将代码集成到共享仓库（如版本控制系统）中，并通过自动化构建、测试和静态代码分析等工具，对新提交的代码进行验证和检查，以确保代码的质量和稳定性。
+
+2. **持续交付/持续部署（Continuous Delivery/Continuous Deployment，CD）**：指在持续集成的基础上，自动化地将通过验证的代码部署到生产环境或者准生产环境中。
+
+![1](.\pics\1.jpg)
+
+项目代码托管在 GitHub 上。在开发过程中，首先需要拉取最新的代码，并解决可能出现的冲突。然后，针对新功能的开发通常会在主分支的基础上创建一个新的分支，在该分支上进行开发工作。开发完成并通过测试后，将新功能的分支合并到主分支中。Jenkins 用于对项目进行编译打包并创建镜像。创建镜像的方法有两种：
+
+方式一：将本地微服务打包后上传到服务器，并编写 Dockerfile 文件完成镜像构建。
+
+方式二：使用 dockerfile-maven-plugin 插件，直接将微服务创建为镜像，更加便捷。
+
+本项目选择方式二来创建镜像，并在服务器上运行容器，提供服务。
+
+#### dockerfile-maven-plugin 插件
+
+要使用这个插件，需要再pom.xml文件中引入依赖
+
+```java
+<plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <version>1.3.6</version>
+                <configuration>
+                    <repository>docker_storage/${lowercaseArtifactId}</repository>
+                    <buildArgs>
+                        <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
+                    </buildArgs>
+                </configuration>
+            </plugin>
+```
+
+其中，"repository" 指定了 Docker 镜像的仓库名称，需要注意名称必须全部使用小写字母。而 "buildArgs" 则可用于指定一个或多个变量，这些变量将传递给 Dockerfile，在 Dockerfile 中可以通过 ARG 指令进行引用。
+
+编写Dockerfile文件，放于pom.xml同级目录
+
+```dockerfile
+# 设置JAVA版本
+FROM openjdk:8
+# 指定存储卷, 任何向/tmp写入的信息都不会记录到容器存储层
+VOLUME /tmp
+# 拷贝运行JAR包
+ARG JAR_FILE
+COPY ${JAR_FILE} app.jar
+# 设置JVM运行参数， 这里限定下内存大小，减少开销
+ENV JAVA_OPTS="\
+-server \
+-Xms256m \
+-Xmx512m \
+-XX:MetaspaceSize=256m \
+-XX:MaxMetaspaceSize=512m"
+#空参数，方便创建容器时传参
+ENV PARAMS=""
+# 入口点， 执行JAVA运行命令
+ENTRYPOINT ["sh","-c","java -jar $JAVA_OPTS /app.jar $PARAMS"]
+```
+
+#### 安装私有仓库
+
+在持续集成环境的配置中，Jenkins需要发布大量的微服务，并与多台机器进行交互。一种方法是利用 Docker 镜像的保存与导出功能结合 SSH 实现，但这种方法交互繁琐，稳定性差，并且不便管理。因此，可以通过搭建 Docker 的私有仓库来解决这个问题。这个私有仓库类似于 GIT 仓库，可以集中统一管理资源，客户端可以从私有仓库拉取或更新所需的镜像。
+
+1. 下载最新Registry镜像
+
+   ```sh
+   docker pull registry:latest
+   ```
+
+2. 启动Registry镜像服务
+
+   ```sh
+   docker run -d -p 5000:5000 --name registry -v /usr/local/docker/registry:/var/lib/registry registry:latest
+   ```
+
+   映射5000端口； -v是将Registry内的镜像数据卷与本地文件关联， 便于管理和维护Registry内的数据。
+
+3. 配置Docker客户端
+
+   正常生产环境中使用， 要配置HTTPS服务， 确保安全，内部开发或测试集成的局域网环境，可以采用简便的方式， 不做安全控制。
+
+   先确保持续集成环境的机器已安装好Docker客户端， 然后做以下修改：
+
+   ```sh
+   vi /lib/systemd/system/docker.service
+   ```
+
+   修改内容：
+
+   ```sh
+   ExecStart=/usr/bin/dockerd --insecure-registry 192.168.200.100:5000
+   ```
+
+   指向安装Registry的服务IP与端口。
+
+   重启生效：
+
+   ```sh
+   systemctl daemon-reolad
+   systemctl restart docker.service
+   ```
+
+#### 4.7.2 jenkins中安装插件
+
+#### jenkins
+
+在 Jenkins 中配置好 Git、Maven、SSH 远程连接以及 Docker 依赖后，创建一个自由风格的软件项目。在项目配置中指定 Git 仓库为项目所在的仓库。在构建过程中，添加`Invoke top-level Maven targets`，并执行以下命令：
+
+```shell
+clean install -Dmaven.test.skip=true dockerfile:build -f pom.xml
+```
+
+- `-Dmaven.test.skip=true`：跳过测试阶段
+- `dockerfile:build`：启动 Dockerfile 插件来构建容器
+- `-f pom.xml`：指定需要构建的文件为 pom.xml（必须是 pom 文件）
+
+并添加`Execute shell`
+
+```shell
+image_tag=$docker_registry/docker_storage/$JOB_NAME
+echo '================docker镜像清理================'
+if [ -n  "$(docker ps -a -f  name=$JOB_NAME  --format '{{.ID}}' )" ]
+ then
+ #删除之前的容器
+ docker rm -f $(docker ps -a -f  name=$JOB_NAME  --format '{{.ID}}' )
+fi
+ # 清理镜像
+docker image prune -f 
+
+# 创建TAG
+docker tag docker_storage/$JOB_NAME $image_tag
+echo '================docker镜像推送================'
+# 推送镜像
+docker push $image_tag
+# 删除TAG
+docker rmi $image_tag
+echo '================docker tag 清理 ================'if [ -n  "$(docker ps -a -f  name=$JOB_NAME  --format '{{.ID}}' )" ]
+ then
+ #删除之前的容器
+ docker rm -f $(docker ps -a -f  name=$JOB_NAME  --format '{{.ID}}' )
+fi
+ # 清理镜像
+docker image prune -f 
+ # 启动docker服务
+docker run -d --net=host -e --name $JOB_NAME docker_storage/$JOB_NAME
+```
+
+添加`Execute shell script on remote host using ssh`
+
+```shell
+echo '================拉取最新镜像================'
+docker pull $docker_registry/docker_storage/$JOB_NAME
+
+echo '================删除清理容器镜像================'
+if [ -n  "$(docker ps -a -f  name=$JOB_NAME  --format '{{.ID}}' )" ]
+ then
+ #删除之前的容器
+ docker rm -f $(docker ps -a -f  name=$JOB_NAME  --format '{{.ID}}' )
+fi
+ # 清理镜像
+docker image prune -f 
+
+echo '===============启动容器================'
+docker run -d   --net=host -e PARAMS="--spring.profiles.active=prod" --name $JOB_NAME $docker_registry/docker_storage/$JOB_NAME
+```
+
+最后进行构建即可，在服务器上即可查看相关的镜像和容器。
+
+为了简化开发流程，可以在 Jenkins 中设置当 GitHub 仓库的主分支发生变动时自动触发构建。
+
